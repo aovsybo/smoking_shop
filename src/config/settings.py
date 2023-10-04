@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "phonenumber_field",
     "djoser",
+    "drf_yasg",
 
     'users',
     'products',
