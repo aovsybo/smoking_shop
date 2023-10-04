@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from users.models import User
+from users.models import User, OTP
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -13,3 +13,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
+
+
+class UserVerifySerializer(serializers.ModelSerializer):
+    class Meta(object):
+        model = OTP
+        fields = ['code']

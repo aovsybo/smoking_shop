@@ -35,8 +35,11 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     "corsheaders",
     "phonenumber_field",
+    "djoser",
 
     'users',
+    'products',
+    'orders',
 ]
 
 AUTH_USER_MODEL = 'users.User'
@@ -191,4 +194,5 @@ SIMPLE_JWT = {
 
 CORS_ALLOWED_ORIGINS = [
     'http://84.38.182.17:5173',
+    'http://localhost:8080',
 ]

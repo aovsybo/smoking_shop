@@ -55,3 +55,7 @@ class User(AbstractUser, PermissionsMixin):
     class Meta:
         verbose_name = 'User'
         verbose_name_plural = 'Users'
+
+
+class OTP(models.Model):
+    code = models.CharField(max_length=8)
