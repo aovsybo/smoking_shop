@@ -197,3 +197,5 @@ CORS_ALLOWED_ORIGINS = [
     'http://84.38.182.17:5173',
     'http://localhost:8080',
 ]
+
+CSRF_TRUSTED_ORIGINS = ['http://*.84.38.182.17/', 'https://*.127.0.0.1']
