@@ -2,6 +2,7 @@ from io import BytesIO
 
 from django.core.files import File
 from django.db import models
+from django.conf import settings
 
 from PIL import Image
 
@@ -46,18 +47,18 @@ class Product(models.Model):
 
     def get_image(self):
         if self.image:
-            return self.image.url
+            return settings.API_URL + self.image.url
         return ''
 
     def get_thumbnail(self):
         if self.thumbnail:
-            return self.thumbnail.url
+            return settings.API_URL + self.thumbnail.url
         else:
             if self.image:
                 self.thumbnail = self.make_thumbnail(self.image)
                 self.save()
 
-                return self.thumbnail.url
+                return settings.API_URL + self.thumbnail.url
             else:
                 return ''
 
