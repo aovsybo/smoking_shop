@@ -5,7 +5,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
-
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from products.api.serializers import ProductSerializer, CategorySerializer, CreateCategorySerializer
 from products.models import Product, Category
@@ -19,6 +20,7 @@ class ProductsList(APIView):
 
 
 class ProductCreate(APIView):
+    @swagger_auto_schema(request_body=ProductSerializer)
     def post(self, request):
         serializer = ProductSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -44,6 +46,7 @@ class ProductDetail(APIView):
             "data": serializer.data,
         }, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(request_body=ProductSerializer)
     def put(self, request, category_slug, product_slug, format=None):
         product = self.get_object(category_slug, product_slug)
         serializer = ProductSerializer(instance=product, data=request.data, partial=True)
@@ -63,6 +66,13 @@ class ProductDetail(APIView):
         }, status=status.HTTP_204_NO_CONTENT)
 
 
+class CategoriesList(APIView):
+    def get(self, request, format=None):
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data)
+
+
 class CategoryDetail(APIView):
     def get_object(self, category_slug):
         try:
@@ -78,6 +88,7 @@ class CategoryDetail(APIView):
             "data": serializer.data,
         }, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(request_body=CategorySerializer)
     def put(self, request, category_slug, format=None):
         category = self.get_object(category_slug)
         serializer = CategorySerializer(instance=category, data=request.data, partial=True)
@@ -98,6 +109,8 @@ class CategoryDetail(APIView):
 
 
 class CategoryCreate(APIView):
+
+    @swagger_auto_schema(request_body=CreateCategorySerializer)
     def post(self, request):
         serializer = CreateCategorySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -108,6 +121,12 @@ class CategoryCreate(APIView):
         }, status=status.HTTP_201_CREATED)
 
 
+@swagger_auto_schema(method='post', request_body=openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        'query': openapi.Schema(type=openapi.TYPE_STRING, description='query')
+    }),
+    responses={200: ProductSerializer, 400: 'Bad Request'})
 @api_view(["POST"])
 def search(request):
     query = request.data.get('query', '')

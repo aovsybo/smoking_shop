@@ -61,10 +61,6 @@ class CategorySerializer(serializers.ModelSerializer):
             "products",
         )
 
-    # def create(self, validated_data):
-    #     category = Category.objects.create(**validated_data)
-    #     return category
-
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)
         instance.slug = validated_data.get("slug", instance.slug)
