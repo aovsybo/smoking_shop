@@ -16,7 +16,10 @@ class ProductsList(APIView):
     def get(self, request, format=None):
         products = Product.objects.all()
         serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
+        return Response({
+            "message": "product list got",
+            "data": serializer.data,
+        }, status=status.HTTP_200_OK)
 
 
 class ProductCreate(APIView):
@@ -109,7 +112,6 @@ class CategoryDetail(APIView):
 
 
 class CategoryCreate(APIView):
-
     @swagger_auto_schema(request_body=CreateCategorySerializer)
     def post(self, request):
         serializer = CreateCategorySerializer(data=request.data)
