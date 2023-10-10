@@ -15,4 +15,4 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        exclude = ["price"]
+        exclude = ('order',)
