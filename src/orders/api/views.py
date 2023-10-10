@@ -1,37 +1,33 @@
 from django.conf import settings
-from rest_framework import status, authentication, permissions
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from django.shortcuts import get_object_or_404
+from rest_framework import status, permissions
+from rest_framework.generics import ListCreateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import stripe
 
 from orders.models import Order, OrderItem
-from orders.api.serializers import OrderSerializer
-from users.models import User
+from orders.api.serializers import OrderSerializer, OrderItemSerializer
+from products.models import Product
 
 
-@api_view(['POST'])
-# @authentication_classes([authentication.TokenAuthentication])
-# @permission_classes([permissions.IsAuthenticated])
-def checkout(request):
-    serializer = OrderSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    stripe.api_key = settings.STRIPE_SECRET_KEY
-    paid_amount = sum(item.get('quantity') * item.get('product').price for item in serializer.validated_data['items'])
-    try:
-        charge = stripe.Charge.create(
-            amount=int(paid_amount * 100),
-            currency='USD',
-            description='Charge from Djackets',
-            source=serializer.validated_data['stripe_token']
-        )
-        serializer.save(user=request.user, paid_amount=paid_amount)
-        return Response({
-            "message": "order created",
-            "data": serializer.data,
-        }, status=status.HTTP_201_CREATED)
-    except Exception:
-        return Response({
-            "message": "bad request",
-            "data": {},
-        }, status=status.HTTP_400_BAD_REQUEST)
+class OrderView(ListCreateAPIView):
+    serializer_class = OrderItemSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Order.objects.filter(user=user)
+        return queryset
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        product = get_object_or_404(Product, pk=request.data["product"])
+        quantity = request.data.get("quantity", 1)
+        order = self.get_queryset()
+        if not order:
+            order = Order().create_order(user, True)
+        price = quantity * product.price
+        order_item = OrderItem().create_order_item(order, product, quantity, price)
+        serializer = OrderItemSerializer(order_item)
+        # TODO Payment Integration here.
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

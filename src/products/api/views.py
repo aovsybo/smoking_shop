@@ -58,11 +58,9 @@ class CategoryDetail(RetrieveUpdateDestroyAPIView):
 
     def get(self, request, *args, **kwargs):
         category = self.get_object()
-        category_products = Product.objects.get(category=category.id)
         return Response({
-            "message": "verified",
-            "products": [category_products]
-        }, status=status.HTTP_200_OK)
+            'products': self.serializer_class(category).data["products"],
+        })
 
 
 class CategoryCreate(CreateAPIView):
