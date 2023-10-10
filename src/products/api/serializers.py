@@ -34,7 +34,7 @@ class ProductSerializer(serializers.ModelSerializer):
         return instance
 
 
-class CreateCategorySerializer(serializers.ModelSerializer):
+class CategoryInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = (
