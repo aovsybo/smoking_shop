@@ -12,7 +12,7 @@ from products.models import Product
 
 
 class CartView(ListAPIView):
-    queryset = Cart.objects.all()
+    queryset = Cart.objects.filter(status="Filling")
     serializer_class = CartSerializer
     pagination_class = None
 
