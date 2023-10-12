@@ -45,6 +45,7 @@ class CartItemAPIView(CreateAPIView):
         queryset = CartItem.objects.filter(cart__user=user, cart__status="Filling")
         return queryset
 
+    # TODO: add summing same products
     def create(self, request, *args, **kwargs):
         user = request.user
         cart, created = Cart.objects.get_or_create(user=user, status="Filling")
@@ -69,7 +70,6 @@ class CartItemAPIView(CreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-# TODO: change total sum during change and delete
 class CartItemView(RetrieveUpdateDestroyAPIView):
     serializer_class = CartItemUpdateSerializer
 
@@ -77,3 +77,31 @@ class CartItemView(RetrieveUpdateDestroyAPIView):
         user = self.request.user
         queryset = CartItem.objects.filter(cart__user=user)
         return queryset
+
+    def update(self, request, *args, **kwargs):
+        cart_item = self.get_object()
+        product = get_object_or_404(Product, pk=request.data["product"]) \
+            if request.data["product"] \
+            else cart_item.product
+        quantity = int(request.data["quantity"]) \
+            if request.data["quantity"] \
+            else cart_item.quantity
+        cart = cart_item.cart
+        cart.total -= decimal.Decimal(float(cart_item.product.price) * float(cart_item.quantity))
+        cart.total += decimal.Decimal(float(product.price) * float(quantity))
+        cart.save()
+        serializer = self.serializer_class(cart_item, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self, request, *args, **kwargs):
+        cart_item = self.get_object()
+        cart = cart_item.cart
+        cart.total -= decimal.Decimal(float(cart_item.product.price) * float(cart_item.quantity))
+        cart.save()
+        cart_item.delete()
+        return Response(
+            {"message": "deleted"},
+            status=status.HTTP_204_NO_CONTENT,
+        )
