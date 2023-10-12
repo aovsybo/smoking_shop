@@ -6,9 +6,22 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, C
 from .serializers import CartItemUpdateSerializer, CartSerializer
 from rest_framework import status
 from rest_framework.response import Response
+from django.db.models import Q
 
 from cart.models import Cart, CartItem
 from products.models import Product
+
+
+class OrdersList(ListAPIView):
+    queryset = Cart.objects.filter(~Q(status="Filling"))
+    serializer_class = CartSerializer
+
+    def get_object(self):
+        try:
+            user = self.kwargs["user"]
+            return Cart.objects.get(user=user)
+        except Cart.DoesNotExist:
+            raise Http404
 
 
 class CartView(ListAPIView):
