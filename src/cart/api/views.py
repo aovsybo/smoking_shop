@@ -29,12 +29,12 @@ class CartItemAPIView(CreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = CartItem.objects.filter(cart__user=user)
+        queryset = CartItem.objects.filter(cart__user=user, cart__status="Filling")
         return queryset
 
     def create(self, request, *args, **kwargs):
         user = request.user
-        cart, created = Cart.objects.get_or_create(user=user)
+        cart, created = Cart.objects.get_or_create(user=user, status="Filling")
         # cart = get_object_or_404(Cart, user=user)
         product = get_object_or_404(Product, pk=request.data["product"])
         quantity = int(request.data["quantity"])

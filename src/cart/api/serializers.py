@@ -16,11 +16,12 @@ class CartItemUpdateSerializer(serializers.ModelSerializer):
 
 
 class CartSerializer(serializers.ModelSerializer):
-    cart_item = CartItemUpdateSerializer(many=True)
+    cart_items = CartItemUpdateSerializer(many=True)
 
     class Meta:
         model = Cart
         fields = (
             "cart_item",
             "total",
+            "status",
         )

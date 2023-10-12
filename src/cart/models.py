@@ -13,12 +13,12 @@ class Cart(models.Model):
         READY = "Ready"
         RECEIVED = "Received"
 
-    user = models.OneToOneField(User, related_name="user_cart", on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name="user_cart", on_delete=models.CASCADE)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, null=True)
     status = models.CharField(choices=OrderStatuses.choices, default=OrderStatuses.FILLING)
 
 
 class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, related_name="cart_item", on_delete=models.CASCADE)
+    cart = models.ForeignKey(Cart, related_name="cart_items", on_delete=models.CASCADE)
     product = models.ForeignKey(Product, related_name="cart_product", on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
