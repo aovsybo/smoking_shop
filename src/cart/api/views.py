@@ -2,11 +2,10 @@ import decimal
 
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, CreateAPIView
-from .serializers import CartItemSerializer, CartItemUpdateSerializer, CartSerializer
-from rest_framework import permissions, status
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, CreateAPIView
+from .serializers import CartItemUpdateSerializer, CartSerializer
+from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError, PermissionDenied
 
 from cart.models import Cart, CartItem
 from products.models import Product
@@ -57,6 +56,7 @@ class CartItemAPIView(CreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+# TODO: change total sum during change and delete
 class CartItemView(RetrieveUpdateDestroyAPIView):
     serializer_class = CartItemUpdateSerializer
 

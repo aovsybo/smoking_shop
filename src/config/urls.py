@@ -10,7 +10,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include('users.api.urls')),
     path('api/v1/', include('products.api.urls')),
-    path('api/v1/', include('orders.api.urls')),
     path('api/v1/', include('cart.api.urls')),
 ]
 urlpatterns += doc_urls
