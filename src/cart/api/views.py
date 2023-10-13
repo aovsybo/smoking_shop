@@ -45,24 +45,17 @@ class CartItemAPIView(CreateAPIView):
         queryset = CartItem.objects.filter(cart__user=user, cart__status="Filling")
         return queryset
 
-    # TODO: add summing same products
     def create(self, request, *args, **kwargs):
         user = request.user
         cart, created = Cart.objects.get_or_create(user=user, status="Filling")
-        # cart = get_object_or_404(Cart, user=user)
         product = get_object_or_404(Product, pk=request.data["product"])
         quantity = int(request.data["quantity"])
-        existing_cart_item = CartItem.objects.filter(product=product, cart=cart).first()
-        if existing_cart_item:
-            # If it exists, increase the quantity
-            existing_cart_item.quantity += quantity
-            existing_cart_item.save()
-            serializer = CartItemUpdateSerializer(existing_cart_item, data=request.data)
-        else:
-            # If it doesn't exist, create a new CartItem
-            cart_item = CartItem(product=product, quantity=quantity, cart=cart)
-            cart_item.save()
-            serializer = CartItemUpdateSerializer(cart_item, data=request.data)
+        cart_item, created = CartItem.objects.get_or_create(product=product, cart=cart)
+        data = {"quantity": quantity, "product": product.pk}
+        if not created:
+            data["quantity"] += cart_item.quantity
+        cart_item.save()
+        serializer = CartItemUpdateSerializer(cart_item, data=data)
         cart.total += decimal.Decimal(float(product.price) * float(quantity))
         cart.save()
         serializer.is_valid(raise_exception=True)
@@ -81,16 +74,16 @@ class CartItemView(RetrieveUpdateDestroyAPIView):
     def update(self, request, *args, **kwargs):
         cart_item = self.get_object()
         product = get_object_or_404(Product, pk=request.data["product"]) \
-            if request.data["product"] \
+            if "product" in request.data.keys() \
             else cart_item.product
         quantity = int(request.data["quantity"]) \
             if request.data["quantity"] \
             else cart_item.quantity
+        data = {"product": product.pk, "quantity": quantity}
         cart = cart_item.cart
-        cart.total -= decimal.Decimal(float(cart_item.product.price) * float(cart_item.quantity))
-        cart.total += decimal.Decimal(float(product.price) * float(quantity))
+        cart.total += decimal.Decimal(float(product.price) * float(cart_item.quantity - quantity))
         cart.save()
-        serializer = self.serializer_class(cart_item, data=request.data)
+        serializer = self.serializer_class(cart_item, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
