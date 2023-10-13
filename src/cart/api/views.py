@@ -2,16 +2,35 @@ import decimal
 
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, CreateAPIView
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, CreateAPIView, UpdateAPIView
+from rest_framework.permissions import IsAuthenticated
 
-from .serializers import CartItemUpdateSerializer, CartSerializer
+from .serializers import CartItemUpdateSerializer, CartSerializer, CartUpdateSerializer
 from rest_framework import status
 from rest_framework.response import Response
 from django.db.models import Q
 
-from cart.models import Cart, CartItem
+from cart.models import Cart, CartItem, OrderStatuses
 from products.models import Product
+
+
+class CreateOrder(UpdateAPIView):
+    serializer_class = CartUpdateSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Cart.objects.filter(status="Filling")
+
+    def get_object(self):
+        try:
+            user = self.request.user
+            return Cart.objects.get(status="Filling", user=user)
+        except Cart.DoesNotExist:
+            raise Http404
+
+    def update(self, request, *args, **kwargs):
+        cart = self.get_object()
+        cart.status = OrderStatuses.PROCESSING
+        cart.save()
+        return Response(status=status.HTTP_200_OK)
 
 
 class OrdersList(ListAPIView):

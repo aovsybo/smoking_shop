@@ -6,13 +6,14 @@ from products.models import Product
 User = get_user_model()
 
 
-class Cart(models.Model):
-    class OrderStatuses(models.TextChoices):
-        FILLING = "Filling"
-        PROCESSING = "Processing"
-        READY = "Ready"
-        RECEIVED = "Received"
+class OrderStatuses(models.TextChoices):
+    FILLING = "Filling"
+    PROCESSING = "Processing"
+    READY = "Ready"
+    RECEIVED = "Received"
 
+
+class Cart(models.Model):
     user = models.ForeignKey(User, related_name="user_cart", on_delete=models.CASCADE)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, null=True)
     status = models.CharField(choices=OrderStatuses.choices, default=OrderStatuses.FILLING)

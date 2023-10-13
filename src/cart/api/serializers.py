@@ -15,6 +15,14 @@ class CartItemUpdateSerializer(serializers.ModelSerializer):
         fields = ["product", "quantity"]
 
 
+class CartUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cart
+        fields = (
+            "status",
+        )
+
+
 class CartSerializer(serializers.ModelSerializer):
     cart_items = CartItemUpdateSerializer(many=True)
 
