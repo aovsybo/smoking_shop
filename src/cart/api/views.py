@@ -3,6 +3,8 @@ import decimal
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, CreateAPIView
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+
 from .serializers import CartItemUpdateSerializer, CartSerializer
 from rest_framework import status
 from rest_framework.response import Response
@@ -13,32 +15,33 @@ from products.models import Product
 
 
 class OrdersList(ListAPIView):
-    queryset = Cart.objects.filter(~Q(status="Filling"))
     serializer_class = CartSerializer
+    permission_classes = [IsAuthenticated]
 
-    def get_object(self):
+    def get_queryset(self):
         try:
-            user = self.kwargs["user"]
-            return Cart.objects.get(user=user)
+            user = self.request.user
+            return Cart.objects.filter(~Q(status="Filling"), user=user)
         except Cart.DoesNotExist:
             raise Http404
 
 
 class CartView(ListAPIView):
-    queryset = Cart.objects.filter(status="Filling")
     serializer_class = CartSerializer
     pagination_class = None
+    permission_classes = [IsAuthenticated]
 
-    def get_object(self):
+    def get_queryset(self):
         try:
-            user = self.kwargs["user"]
-            return Cart.objects.get(user=user)
+            user = self.request.user
+            return Cart.objects.filter(status="Filling", user=user)
         except Cart.DoesNotExist:
             raise Http404
 
 
 class CartItemAPIView(CreateAPIView):
     serializer_class = CartItemUpdateSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
@@ -65,6 +68,7 @@ class CartItemAPIView(CreateAPIView):
 
 class CartItemView(RetrieveUpdateDestroyAPIView):
     serializer_class = CartItemUpdateSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user

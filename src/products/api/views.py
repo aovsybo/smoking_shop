@@ -1,5 +1,6 @@
 from django.http import Http404
 from rest_framework import status
+from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly, BasePermission
 from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
@@ -10,6 +11,20 @@ from django_filters.rest_framework import DjangoFilterBackend
 from products.api.serializers import ProductSerializer, CategorySerializer, CategoryInfoSerializer
 from products.models import Product, Category
 from products.service import ProductFilter
+
+SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS']
+
+
+class IsAdminOrSafeMethods(BasePermission):
+    """
+    The request is authenticated as an admin, or method is safe.
+    """
+    def has_permission(self, request, view):
+        if (request.method in SAFE_METHODS or
+                request.user and
+                request.user.is_staff):
+            return True
+        return False
 
 
 class ProductsList(ListAPIView):
@@ -22,11 +37,13 @@ class ProductsList(ListAPIView):
 
 class ProductCreate(CreateAPIView):
     serializer_class = ProductSerializer
+    permission_classes = [IsAdminUser]
 
 
 class ProductDetail(RetrieveUpdateDestroyAPIView):
     serializer_class = ProductSerializer
     pagination_class = PageNumberPagination
+    permission_classes = [IsAdminOrSafeMethods]
 
     def get_object(self):
         try:
@@ -41,6 +58,7 @@ class CategoriesList(ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategoryInfoSerializer
     pagination_class = PageNumberPagination
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class CategoryDetail(RetrieveUpdateDestroyAPIView):
@@ -48,6 +66,7 @@ class CategoryDetail(RetrieveUpdateDestroyAPIView):
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = ProductFilter
+    permission_classes = [IsAdminOrSafeMethods]
 
     def get_object(self):
         try:
@@ -65,6 +84,7 @@ class CategoryDetail(RetrieveUpdateDestroyAPIView):
 
 class CategoryCreate(CreateAPIView):
     serializer_class = CategoryInfoSerializer
+    permission_classes = [IsAdminUser]
 
 
 class SearchListView(ListAPIView):
@@ -73,3 +93,4 @@ class SearchListView(ListAPIView):
     pagination_class = PageNumberPagination
     filter_backends = (SearchFilter, OrderingFilter)
     search_fields = ("name", "description")
+    permission_classes = [IsAuthenticatedOrReadOnly]
