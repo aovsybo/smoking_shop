@@ -57,7 +57,6 @@ class Product(models.Model):
             if self.image:
                 self.thumbnail = self.make_thumbnail(self.image)
                 self.save()
-
                 return settings.API_URL + self.thumbnail.url
             else:
                 return ''
@@ -68,5 +67,6 @@ class Product(models.Model):
         img.thumbnail(size)
         thumb_io = BytesIO()
         img.save(thumb_io, 'JPEG', quality=85)
-        thumbnail = File(thumb_io, name=image.name)
+        name = f'thumbnail_{image.name.split("/")[-1]}'
+        thumbnail = File(thumb_io, name=name)
         return thumbnail

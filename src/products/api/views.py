@@ -8,7 +8,12 @@ from rest_framework.pagination import PageNumberPagination
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-from products.api.serializers import ProductSerializer, CategorySerializer, CategoryInfoSerializer
+from products.api.serializers import (
+    ProductSerializer,
+    ProductCreateSerializer,
+    CategorySerializer,
+    CategoryInfoSerializer,
+    )
 from products.models import Product, Category
 from products.service import ProductFilter
 
@@ -36,7 +41,7 @@ class ProductsList(ListAPIView):
 
 
 class ProductCreate(CreateAPIView):
-    serializer_class = ProductSerializer
+    serializer_class = ProductCreateSerializer
     permission_classes = [IsAdminUser]
 
 

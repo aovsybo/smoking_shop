@@ -3,6 +3,20 @@ from rest_framework import serializers
 from products.models import Product, Category
 
 
+class ProductCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = (
+            "name",
+            "category",
+            "producer",
+            "slug",
+            "description",
+            "price",
+            "image",
+        )
+
+
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
@@ -19,9 +33,9 @@ class ProductSerializer(serializers.ModelSerializer):
             "get_thumbnail"
         )
 
-    def create(self, validated_data):
-        product = Product.objects.create(**validated_data)
-        return product
+    # def create(self, validated_data):
+    #     product = Product.objects.create(**validated_data)
+    #     return product
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)
