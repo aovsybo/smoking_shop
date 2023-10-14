@@ -1,10 +1,7 @@
-from drf_yasg import openapi
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.generics import UpdateAPIView
-from drf_yasg.utils import swagger_auto_schema
+from rest_framework.generics import UpdateAPIView, CreateAPIView
 
 from users.api.serializers import UserCreateSerializer, UserVerifySerializer, UploadDocumentSerializer
 from users.api import verify
@@ -20,33 +17,17 @@ class UploadDocument(UpdateAPIView):
         return self.request.user
 
 
-# TODO: add generics
-class RegisterAPI(APIView):
-    @swagger_auto_schema(request_body=UserCreateSerializer)
-    def post(self, request):
-        serializer = UserCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(is_active=True)
-        # verify.send(serializer.validated_data['phone'])
-        return Response({
-            "message": "successful registration",
-            "data": serializer.data,
-        }, status=status.HTTP_200_OK)
+class RegisterAPI(CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserCreateSerializer
 
 
-class VerifyAPI(APIView):
+class VerifyAPI(CreateAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = UserVerifySerializer
 
-    @swagger_auto_schema(
-        request_body=UserVerifySerializer,
-        manual_parameters=[openapi.Parameter(
-            'Authorization',
-            openapi.IN_HEADER,
-            type=openapi.TYPE_STRING,
-        )]
-    )
-    def post(self, request):
-        serializer = UserVerifySerializer(data=request.data)
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         code = serializer.validated_data['code']
         # if verify.check(request.user.phone, code):
