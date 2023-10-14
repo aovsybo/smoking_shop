@@ -46,6 +46,8 @@ class CustomUserManager(BaseUserManager):
 class User(AbstractUser, PermissionsMixin):
     phone = PhoneNumberField(blank=False, unique=True)
     username = models.CharField(blank=False, unique=True)
+    document = models.FileField(upload_to="uploads/documents/")
+    document_verified = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = []

@@ -11,12 +11,13 @@ from rest_framework.response import Response
 from django.db.models import Q
 
 from cart.models import Cart, CartItem, OrderStatuses
+from cart.permissions import IsVerified
 from products.models import Product
 
 
 class CreateOrder(UpdateAPIView):
     serializer_class = CartUpdateSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsVerified]
     queryset = Cart.objects.filter(status="Filling")
 
     def get_object(self):

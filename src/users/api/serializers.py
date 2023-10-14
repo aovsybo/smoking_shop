@@ -3,6 +3,12 @@ from rest_framework import serializers
 from users.models import User, OTP
 
 
+class UploadDocumentSerializer(serializers.ModelSerializer):
+    class Meta(object):
+        model = User
+        fields = ['document']
+
+
 class UserCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 

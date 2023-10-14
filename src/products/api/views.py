@@ -1,6 +1,5 @@
 from django.http import Http404
-from rest_framework import status
-from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly, BasePermission
+from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
@@ -16,20 +15,7 @@ from products.api.serializers import (
     )
 from products.models import Product, Category
 from products.service import ProductFilter
-
-SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS']
-
-
-class IsAdminOrSafeMethods(BasePermission):
-    """
-    The request is authenticated as an admin, or method is safe.
-    """
-    def has_permission(self, request, view):
-        if (request.method in SAFE_METHODS or
-                request.user and
-                request.user.is_staff):
-            return True
-        return False
+from products.permissions import IsAdminOrSafeMethods
 
 
 class ProductsList(ListAPIView):

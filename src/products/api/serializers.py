@@ -33,10 +33,6 @@ class ProductSerializer(serializers.ModelSerializer):
             "get_thumbnail"
         )
 
-    # def create(self, validated_data):
-    #     product = Product.objects.create(**validated_data)
-    #     return product
-
     def update(self, instance, validated_data):
         instance.name = validated_data.get("name", instance.name)
         instance.slug = validated_data.get("slug", instance.slug)

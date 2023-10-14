@@ -1,15 +1,26 @@
-from django.contrib.auth import authenticate, login
 from drf_yasg import openapi
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import UpdateAPIView
 from drf_yasg.utils import swagger_auto_schema
 
-from users.api.serializers import UserCreateSerializer, UserVerifySerializer
+from users.api.serializers import UserCreateSerializer, UserVerifySerializer, UploadDocumentSerializer
 from users.api import verify
+from users.models import User
 
 
+class UploadDocument(UpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UploadDocumentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+
+# TODO: add generics
 class RegisterAPI(APIView):
     @swagger_auto_schema(request_body=UserCreateSerializer)
     def post(self, request):
