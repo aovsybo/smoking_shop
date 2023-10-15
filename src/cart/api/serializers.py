@@ -12,13 +12,7 @@ class DiscountSerializer(serializers.ModelSerializer):
 class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
-        fields = ["cart", "product", "quantity"]
-
-
-class CartItemUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CartItem
-        fields = ["product", "quantity"]
+        fields = ["id", "product", "quantity"]
 
 
 class UsePromoSerializer(serializers.ModelSerializer):
@@ -38,7 +32,7 @@ class CreateOrderSerializer(serializers.ModelSerializer):
 
 
 class CartSerializer(serializers.ModelSerializer):
-    cart_items = CartItemUpdateSerializer(many=True)
+    cart_items = CartItemSerializer(many=True)
 
     class Meta:
         model = Cart

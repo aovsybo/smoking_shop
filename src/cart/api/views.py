@@ -11,17 +11,17 @@ from rest_framework.generics import (
 )
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
-from .serializers import (
-    CartItemUpdateSerializer,
+from rest_framework import status
+from rest_framework.response import Response
+from django.db.models import Q
+
+from cart.api.serializers import (
+    CartItemSerializer,
     CartSerializer,
     CreateOrderSerializer,
     DiscountSerializer,
     UsePromoSerializer,
 )
-from rest_framework import status
-from rest_framework.response import Response
-from django.db.models import Q
-
 from cart.models import Cart, CartItem, OrderStatuses, Discount
 from cart.permissions import IsVerified
 from products.models import Product
@@ -127,7 +127,7 @@ class CartView(ListAPIView):
 
 
 class CartItemAPIView(CreateAPIView):
-    serializer_class = CartItemUpdateSerializer
+    serializer_class = CartItemSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -145,7 +145,7 @@ class CartItemAPIView(CreateAPIView):
         if not created:
             data["quantity"] += cart_item.quantity
         cart_item.save()
-        serializer = CartItemUpdateSerializer(cart_item, data=data)
+        serializer = self.serializer_class(cart_item, data=data)
         cart.total += decimal.Decimal(float(product.price) * float(quantity))
         cart.save()
         serializer.is_valid(raise_exception=True)
@@ -154,7 +154,7 @@ class CartItemAPIView(CreateAPIView):
 
 
 class CartItemView(RetrieveUpdateDestroyAPIView):
-    serializer_class = CartItemUpdateSerializer
+    serializer_class = CartItemSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -172,7 +172,7 @@ class CartItemView(RetrieveUpdateDestroyAPIView):
             else cart_item.quantity
         data = {"product": product.pk, "quantity": quantity}
         cart = cart_item.cart
-        cart.total += decimal.Decimal(float(product.price) * float(cart_item.quantity - quantity))
+        cart.total += decimal.Decimal(float(product.price) * float(quantity - cart_item.quantity))
         cart.save()
         serializer = self.serializer_class(cart_item, data=data)
         serializer.is_valid(raise_exception=True)
