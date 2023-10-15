@@ -6,7 +6,7 @@ from users.api import views
 urlpatterns = [
     path('account/register/', views.RegisterAPI.as_view()),
     path('account/verify/', views.VerifyAPI.as_view()),
-    path('account/<slug:username>/', views.UserInfoAPI.as_view()),
+    path('account/search/<slug:username>/', views.UserInfoAPI.as_view()),
     path('account/document/', views.UploadDocument.as_view()),
     path('account/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('account/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
