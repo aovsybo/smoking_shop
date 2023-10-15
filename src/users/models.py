@@ -61,3 +61,8 @@ class User(AbstractUser, PermissionsMixin):
 
 class OTP(models.Model):
     code = models.CharField(max_length=8)
+
+
+class Notification(models.Model):
+    message = models.CharField(blank=False, unique=True)
+    is_read = models.BooleanField(default=False)

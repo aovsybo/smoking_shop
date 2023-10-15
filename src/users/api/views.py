@@ -1,17 +1,24 @@
-from django.http import Http404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework.generics import UpdateAPIView, CreateAPIView, RetrieveAPIView
+from rest_framework.generics import (
+    UpdateAPIView,
+    CreateAPIView,
+    RetrieveAPIView,
+    ListCreateAPIView,
+    RetrieveUpdateDestroyAPIView)
 
 from users.api.serializers import (
     UserCreateSerializer,
     UserVerifySerializer,
     UploadDocumentSerializer,
     UserInfoSerializer,
+    NotificationSerializer,
 )
 from users.api import verify
-from users.models import User
+from users.models import User, Notification
+from config.services import CustomPagination
 
 
 class UploadDocument(UpdateAPIView):
@@ -56,3 +63,21 @@ class UserInfoAPI(RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class NotificationsListCreateAPI(ListCreateAPIView):
+    serializer_class = NotificationSerializer
+    pagination_class = CustomPagination
+    permission_classes = [IsAdminUser]
+    queryset = Notification.objects.all()
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['is_read']
+
+
+class NotificationAPI(RetrieveUpdateDestroyAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_queryset(self):
+        pk = self.kwargs["pk"]
+        return Notification.objects.filter(pk=pk)

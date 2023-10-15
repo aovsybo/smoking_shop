@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from users.models import User, OTP
+from users.models import User, OTP, Notification
 
 
 class UploadDocumentSerializer(serializers.ModelSerializer):
@@ -31,3 +31,9 @@ class UserVerifySerializer(serializers.ModelSerializer):
     class Meta(object):
         model = OTP
         fields = ['code']
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta(object):
+        model = Notification
+        fields = '__all__'
