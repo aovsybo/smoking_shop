@@ -2,21 +2,69 @@ import decimal
 
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView, CreateAPIView, UpdateAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import (
+    RetrieveUpdateDestroyAPIView,
+    ListAPIView,
+    CreateAPIView,
+    UpdateAPIView,
+    ListCreateAPIView
+)
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
-from .serializers import CartItemUpdateSerializer, CartSerializer, CartUpdateSerializer
+from .serializers import (
+    CartItemUpdateSerializer,
+    CartSerializer,
+    CreateOrderSerializer,
+    DiscountSerializer,
+    UsePromoSerializer,
+)
 from rest_framework import status
 from rest_framework.response import Response
 from django.db.models import Q
 
-from cart.models import Cart, CartItem, OrderStatuses
+from cart.models import Cart, CartItem, OrderStatuses, Discount
 from cart.permissions import IsVerified
 from products.models import Product
 
 
+class UsePromoAPIView(UpdateAPIView):
+    serializer_class = UsePromoSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        try:
+            promo_code = self.request.data["promo_code"]
+            return Discount.objects.get(promo_code=promo_code)
+        except Discount.DoesNotExist:
+            raise Http404
+
+    def update(self, request, *args, **kwargs):
+        cart = Cart.objects.get(status="Filling", user=request.user)
+        discount = self.get_queryset()
+        if discount and discount.is_active:
+            cart.discount = discount
+            cart.save()
+            return Response(status=status.HTTP_200_OK)
+        return Response({"message": "Promo does not exists"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DiscountCreateListAPIView(ListCreateAPIView):
+    serializer_class = DiscountSerializer
+    permission_classes = [IsAdminUser]
+    queryset = Discount.objects.all()
+
+
+class DiscountAPIView(RetrieveUpdateDestroyAPIView):
+    serializer_class = DiscountSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_queryset(self):
+        pk = self.kwargs["pk"]
+        return Discount.objects.filter(pk=pk)
+
+
 class CreateOrder(UpdateAPIView):
-    serializer_class = CartUpdateSerializer
+    serializer_class = CreateOrderSerializer
     permission_classes = [IsAuthenticated, IsVerified]
     queryset = Cart.objects.filter(status="Filling")
 
@@ -48,7 +96,6 @@ class OrdersList(ListAPIView):
 
 class CartView(ListAPIView):
     serializer_class = CartSerializer
-    pagination_class = None
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -57,6 +104,26 @@ class CartView(ListAPIView):
             return Cart.objects.filter(status="Filling", user=user)
         except Cart.DoesNotExist:
             raise Http404
+
+    # def get(self, *args, **kwargs):
+    #     user = self.request.user
+    #     cart = Cart.objects.get(status="Filling", user=user)
+    #     #data = dict()
+    #     #data['cart_items'] = CartItem.objects.filter(cart=cart)
+    #     if cart.discount:
+    #         discount_part = 1 - cart.discount.discount_percent / 100
+    #         discount_total = round(float(cart.total) * float(discount_part), 2)
+    #         #data["discount_total"] = decimal.Decimal(discount_total)
+    #         cart.discount_total = decimal.Decimal(discount_total)
+    #     else:
+    #         # data["discount_total"] = cart.total
+    #         cart.discount_total = cart.total
+    #     cart.save()
+    #     # serializer = self.serializer_class(cart, data=data)
+    #     # serializer.is_valid(raise_exception=True)
+    #     # serializer.save()
+    #     #return Response(serializer.data, status=status.HTTP_200_OK)
+    #     return Response(status=status.HTTP_200_OK)
 
 
 class CartItemAPIView(CreateAPIView):

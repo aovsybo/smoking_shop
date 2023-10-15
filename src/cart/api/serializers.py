@@ -1,6 +1,12 @@
 from rest_framework import serializers
 
-from cart.models import Cart, CartItem
+from cart.models import Cart, CartItem, Discount
+
+
+class DiscountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Discount
+        fields = '__all__'
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -15,7 +21,15 @@ class CartItemUpdateSerializer(serializers.ModelSerializer):
         fields = ["product", "quantity"]
 
 
-class CartUpdateSerializer(serializers.ModelSerializer):
+class UsePromoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Discount
+        fields = (
+            "promo_code",
+        )
+
+
+class CreateOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = (
@@ -31,5 +45,6 @@ class CartSerializer(serializers.ModelSerializer):
         fields = (
             "cart_items",
             "total",
+            "discount_total",
             "status",
         )
