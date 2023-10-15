@@ -31,6 +31,16 @@ class ProductCreate(CreateAPIView):
     permission_classes = [IsAdminUser]
 
 
+class ProductDetailById(ListAPIView):
+    serializer_class = ProductSerializer
+    pagination_class = None
+    permission_classes = [IsAdminOrSafeMethods]
+
+    def get_queryset(self):
+        pk = self.kwargs["pk"]
+        return Product.objects.filter(pk=pk)
+
+
 class ProductDetail(RetrieveUpdateDestroyAPIView):
     serializer_class = ProductSerializer
     pagination_class = PageNumberPagination
