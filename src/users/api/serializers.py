@@ -9,6 +9,12 @@ class UploadDocumentSerializer(serializers.ModelSerializer):
         fields = ['document']
 
 
+class UserInfoSerializer(serializers.ModelSerializer):
+    class Meta(object):
+        model = User
+        exclude = ['user_permissions', 'first_name', 'last_name', 'groups', 'email', 'last_login', 'password']
+
+
 class UserCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 

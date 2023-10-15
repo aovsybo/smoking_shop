@@ -1,9 +1,15 @@
+from django.http import Http404
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.generics import UpdateAPIView, CreateAPIView
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.generics import UpdateAPIView, CreateAPIView, RetrieveAPIView
 
-from users.api.serializers import UserCreateSerializer, UserVerifySerializer, UploadDocumentSerializer
+from users.api.serializers import (
+    UserCreateSerializer,
+    UserVerifySerializer,
+    UploadDocumentSerializer,
+    UserInfoSerializer,
+)
 from users.api import verify
 from users.models import User
 
@@ -42,3 +48,15 @@ class VerifyAPI(CreateAPIView):
             "message": "not verified",
             "data": {"code": code}
         }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserInfoAPI(RetrieveAPIView):
+    permission_classes = [IsAdminUser]
+    serializer_class = UserInfoSerializer
+
+    def get_object(self):
+        try:
+            username = self.kwargs["username"]
+            return User.objects.get(username=username)
+        except User.DoesNotExist:
+            raise Http404
