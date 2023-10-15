@@ -43,6 +43,9 @@ class UsePromoAPIView(UpdateAPIView):
         discount = self.get_queryset()
         if discount and discount.is_active:
             cart.discount = discount
+            discount_part = 1 - cart.discount.discount_percent / 100
+            discount_price = round(float(cart.total) * float(discount_part), 2)
+            cart.discount_total = decimal.Decimal(discount_price)
             cart.save()
             return Response(status=status.HTTP_200_OK)
         return Response({"message": "Promo does not exists"}, status=status.HTTP_400_BAD_REQUEST)
@@ -105,26 +108,6 @@ class CartView(ListAPIView):
         except Cart.DoesNotExist:
             raise Http404
 
-    # def get(self, *args, **kwargs):
-    #     user = self.request.user
-    #     cart = Cart.objects.get(status="Filling", user=user)
-    #     #data = dict()
-    #     #data['cart_items'] = CartItem.objects.filter(cart=cart)
-    #     if cart.discount:
-    #         discount_part = 1 - cart.discount.discount_percent / 100
-    #         discount_total = round(float(cart.total) * float(discount_part), 2)
-    #         #data["discount_total"] = decimal.Decimal(discount_total)
-    #         cart.discount_total = decimal.Decimal(discount_total)
-    #     else:
-    #         # data["discount_total"] = cart.total
-    #         cart.discount_total = cart.total
-    #     cart.save()
-    #     # serializer = self.serializer_class(cart, data=data)
-    #     # serializer.is_valid(raise_exception=True)
-    #     # serializer.save()
-    #     #return Response(serializer.data, status=status.HTTP_200_OK)
-    #     return Response(status=status.HTTP_200_OK)
-
 
 class CartItemAPIView(CreateAPIView):
     serializer_class = CartItemSerializer
@@ -146,7 +129,14 @@ class CartItemAPIView(CreateAPIView):
             data["quantity"] += cart_item.quantity
         cart_item.save()
         serializer = self.serializer_class(cart_item, data=data)
-        cart.total += decimal.Decimal(float(product.price) * float(quantity))
+        sum_price = float(product.price) * float(quantity)
+        cart.total += decimal.Decimal(sum_price)
+        if cart.discount:
+            discount_part = 1 - cart.discount.discount_percent / 100
+            discount_price = round(sum_price * float(discount_part), 2)
+            cart.discount_total += decimal.Decimal(discount_price)
+        else:
+            cart.discount_total += decimal.Decimal(sum_price)
         cart.save()
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -172,7 +162,14 @@ class CartItemView(RetrieveUpdateDestroyAPIView):
             else cart_item.quantity
         data = {"product": product.pk, "quantity": quantity}
         cart = cart_item.cart
-        cart.total += decimal.Decimal(float(product.price) * float(quantity - cart_item.quantity))
+        sum_price = float(product.price) * float(quantity - cart_item.quantity)
+        cart.total += decimal.Decimal(sum_price)
+        if cart.discount:
+            discount_part = 1 - cart.discount.discount_percent / 100
+            discount_price = round(sum_price * float(discount_part), 2)
+            cart.discount_total += decimal.Decimal(discount_price)
+        else:
+            cart.discount_total += decimal.Decimal(sum_price)
         cart.save()
         serializer = self.serializer_class(cart_item, data=data)
         serializer.is_valid(raise_exception=True)
@@ -182,7 +179,14 @@ class CartItemView(RetrieveUpdateDestroyAPIView):
     def delete(self, request, *args, **kwargs):
         cart_item = self.get_object()
         cart = cart_item.cart
-        cart.total -= decimal.Decimal(float(cart_item.product.price) * float(cart_item.quantity))
+        sum_price = float(cart_item.product.price) * float(cart_item.quantity)
+        cart.total -= decimal.Decimal(sum_price)
+        if cart.discount:
+            discount_part = 1 - cart.discount.discount_percent / 100
+            discount_price = round(sum_price * float(discount_part), 2)
+            cart.discount_total -= decimal.Decimal(discount_price)
+        else:
+            cart.discount_total -= decimal.Decimal(sum_price)
         cart.save()
         cart_item.delete()
         return Response(
