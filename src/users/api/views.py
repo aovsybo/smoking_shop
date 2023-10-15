@@ -51,12 +51,8 @@ class VerifyAPI(CreateAPIView):
 
 
 class UserInfoAPI(RetrieveAPIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
     serializer_class = UserInfoSerializer
 
     def get_object(self):
-        try:
-            username = self.kwargs["username"]
-            return User.objects.get(username=username)
-        except User.DoesNotExist:
-            raise Http404
+        return self.request.user
