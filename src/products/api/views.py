@@ -16,12 +16,13 @@ from products.api.serializers import (
 from products.models import Product, Category
 from products.service import ProductFilter
 from products.permissions import IsAdminOrSafeMethods
+from config.services import CustomPagination
 
 
 class ProductsList(ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = ProductFilter
 
@@ -33,7 +34,6 @@ class ProductCreate(CreateAPIView):
 
 class ProductDetailById(ListAPIView):
     serializer_class = ProductSerializer
-    pagination_class = None
     permission_classes = [IsAdminOrSafeMethods]
 
     def get_queryset(self):
@@ -43,7 +43,6 @@ class ProductDetailById(ListAPIView):
 
 class ProductDetail(RetrieveUpdateDestroyAPIView):
     serializer_class = ProductSerializer
-    pagination_class = PageNumberPagination
     permission_classes = [IsAdminOrSafeMethods]
 
     def get_object(self):
@@ -58,13 +57,12 @@ class ProductDetail(RetrieveUpdateDestroyAPIView):
 class CategoriesList(ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategoryInfoSerializer
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPagination
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class CategoryDetail(RetrieveUpdateDestroyAPIView):
     serializer_class = CategorySerializer
-    pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = ProductFilter
     permission_classes = [IsAdminOrSafeMethods]
@@ -91,7 +89,7 @@ class CategoryCreate(CreateAPIView):
 class SearchListView(ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPagination
     filter_backends = (SearchFilter, OrderingFilter)
     search_fields = ("name", "description")
     permission_classes = [IsAuthenticatedOrReadOnly]

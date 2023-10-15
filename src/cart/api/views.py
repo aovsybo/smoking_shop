@@ -10,7 +10,6 @@ from rest_framework.generics import (
     ListCreateAPIView
 )
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-
 from rest_framework import status
 from rest_framework.response import Response
 from django.db.models import Q
@@ -25,6 +24,7 @@ from cart.api.serializers import (
 from cart.models import Cart, CartItem, OrderStatuses, Discount
 from cart.permissions import IsVerified
 from products.models import Product
+from config.services import CustomPagination
 
 
 class UsePromoAPIView(UpdateAPIView):
@@ -53,6 +53,7 @@ class UsePromoAPIView(UpdateAPIView):
 
 class DiscountCreateListAPIView(ListCreateAPIView):
     serializer_class = DiscountSerializer
+    pagination_class = CustomPagination
     permission_classes = [IsAdminUser]
     queryset = Discount.objects.all()
 
@@ -88,6 +89,7 @@ class CreateOrder(UpdateAPIView):
 class OrdersList(ListAPIView):
     serializer_class = CartSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         try:
@@ -100,6 +102,7 @@ class OrdersList(ListAPIView):
 class CartView(ListAPIView):
     serializer_class = CartSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         try:
