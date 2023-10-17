@@ -9,5 +9,7 @@ create .env-app file with SECRET_KEY, DEBUG, ALLOWED_HOSTS, POSTGRES_HOST, TWILI
 and .env-db file with POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD.
 
 then use comands:
+```
 docker build -t ss_web .
 docker compose up
+```
