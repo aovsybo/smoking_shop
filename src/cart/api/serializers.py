@@ -31,6 +31,20 @@ class CreateOrderSerializer(serializers.ModelSerializer):
         )
 
 
+class CartsListSerializer(serializers.ModelSerializer):
+    cart_items = CartItemSerializer(many=True)
+
+    class Meta:
+        model = Cart
+        fields = (
+            "user",
+            "cart_items",
+            "total",
+            "discount_total",
+            "status",
+        )
+
+
 class CartSerializer(serializers.ModelSerializer):
     cart_items = CartItemSerializer(many=True)
 

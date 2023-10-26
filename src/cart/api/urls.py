@@ -4,6 +4,7 @@ from cart.api import views
 
 urlpatterns = [
     path("cart/", views.CartView.as_view()),
+    path("cart/all/", views.AllCartsView.as_view()),
     path("cart/add/", views.CartItemAPIView.as_view()),
     path("cart/use_promo/", views.UsePromoAPIView.as_view()),
     path("cart/createOrder/", views.CreateOrder.as_view()),

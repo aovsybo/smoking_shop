@@ -18,6 +18,7 @@ from cart.api.serializers import (
     CartItemSerializer,
     CartSerializer,
     CreateOrderSerializer,
+    CartsListSerializer,
     DiscountSerializer,
     UsePromoSerializer,
 )
@@ -97,6 +98,13 @@ class OrdersList(ListAPIView):
             return Cart.objects.filter(~Q(status="Filling"), user=user)
         except Cart.DoesNotExist:
             raise Http404
+
+
+class AllCartsView(ListAPIView):
+    serializer_class = CartsListSerializer
+    permission_classes = [IsAdminUser]
+    pagination_class = CustomPagination
+    queryset = Cart.objects.all()
 
 
 class CartView(ListAPIView):
