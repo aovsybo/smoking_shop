@@ -62,11 +62,12 @@ class Product(models.Model):
                 return ''
 
     def make_thumbnail(self, image, size=(300, 200)):
+        img_format = image.name.split(".")[-1]
         img = Image.open(image)
         img.convert('RGB')
         img.thumbnail(size)
         thumb_io = BytesIO()
-        img.save(thumb_io, 'JPEG', quality=85)
+        img.save(thumb_io, img_format, quality=85)
         name = f'thumbnail_{image.name.split("/")[-1]}'
         thumbnail = File(thumb_io, name=name)
         return thumbnail
