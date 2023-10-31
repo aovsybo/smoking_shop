@@ -23,6 +23,7 @@ POSTGRES_PASSWORD
 ```
 then use comands:
 ```
+pip install -r requirements.txt
 docker build -t ss_web .
 docker compose up
 ```
