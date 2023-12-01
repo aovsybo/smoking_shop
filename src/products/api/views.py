@@ -1,9 +1,11 @@
 from django.http import Http404
+from rest_framework import status
 from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.views import APIView
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -16,6 +18,7 @@ from products.api.serializers import (
 from products.models import Product, Category
 from products.service import ProductFilter
 from products.permissions import IsAdminOrSafeMethods
+from products.parse_data import create_categories, create_products, parse_products_info
 from config.services import CustomPagination
 
 
@@ -93,3 +96,11 @@ class SearchListView(ListAPIView):
     filter_backends = (SearchFilter, OrderingFilter)
     search_fields = ("name", "description")
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class ParseCatalog(APIView):
+    def post(self, request, *args, **kwargs):
+        parse_products_info()
+        category_ids = create_categories(CategoryInfoSerializer, CategorySerializer)
+        response_data = create_categories(ProductCreateSerializer, ProductSerializer, category_ids)
+        return Response(response_data, status=status.HTTP_201_CREATED)
