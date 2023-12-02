@@ -101,6 +101,8 @@ class SearchListView(ListAPIView):
 
 
 class ParseCatalog(APIView):
+    permission_classes = [IsAdminUser]
+
     def post(self, request, *args, **kwargs):
         products = parse_products_info()
         categories = self.get_categories_from_products(products)
