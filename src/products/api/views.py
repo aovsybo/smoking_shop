@@ -13,7 +13,7 @@ from products.api.serializers import (
     ProductCreateSerializer,
     CategorySerializer,
     CategoryInfoSerializer,
-    )
+)
 from products.models import Product, Category
 from products.service import ProductFilter
 from products.permissions import IsAdminOrSafeMethods
@@ -101,7 +101,12 @@ class ParseCatalog(APIView):
     def post(self, request, *args, **kwargs):
         products = parse_products_info()
         categories = self.get_categories_from_products(products)
-        response_data = self.create_categories(categories)
+        categories_response_data = self.create_categories(categories)
+        products_response_data = self.create_products(products)
+        response_data = {
+            "categories_response_data": categories_response_data,
+            "products_response_data": products_response_data
+        }
         return Response(response_data, status=status.HTTP_201_CREATED)
 
     def create_categories(self, categories):
@@ -120,6 +125,37 @@ class ParseCatalog(APIView):
                     errors.append(serializer.errors)
         response_data = {
             'created_objects': CategorySerializer(created_objects, many=True).data,
+            'errors': errors,
+        }
+        return response_data
+
+    def create_products(self, products):
+        created_objects = []
+        errors = []
+        for product in products:
+            if Product.objects.filter(name=product["name"]).count() == 0:
+                category = Category.objects.get(name=product["category"])
+                data = {
+                    "name": product["name"],
+                    "category": category.id,
+                    "producer": product["producer"],
+                    "slug": self.get_slug_from_str(product["name"]),
+                    "description": product["description"],
+                    "price": product["price"].strip('$')
+                }
+                #         image_name = f"{data['slug']}.{product['image'].split('.')[-1]}"
+                #         image_response = requests.get(url=product["image"])
+                #         if image_response.status_code == 200:
+                #             data['image'] = ContentFile(image_response.content, name=image_name)
+                #         else:
+                #             errors.append(f"Failed to download image for product {product['name']}")
+                serializer = ProductCreateSerializer(data=data)
+                if serializer.is_valid():
+                    created_objects.append(serializer.save())
+                else:
+                    errors.append(serializer.errors)
+        response_data = {
+            'created_objects': ProductSerializer(created_objects, many=True).data,
             'errors': errors,
         }
         return response_data

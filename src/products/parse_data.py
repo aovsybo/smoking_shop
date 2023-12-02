@@ -1,12 +1,7 @@
-import requests
-from bs4 import BeautifulSoup
-import json
 import aiohttp
 import asyncio
+from bs4 import BeautifulSoup
 import pandas as pd
-# from django.core.files.base import ContentFile
-
-# from config.settings import BASE_DIR
 
 
 LINK = 'https://weedmaps.com/deliveries/bishop-boyz-2?page='
@@ -74,61 +69,6 @@ def find_duplicates(products_info: list[dict]):
     pd.reset_option('display.max_columns')
     pd.reset_option('display.expand_frame_repr')
     return unique_products.to_dict('records')
-
-
-# def create_products(create_serializer, list_serializer, category_ids):
-#     unique_products_info = get_unique_products_info()
-#     created_objects = []
-#     errors = []
-#     for product in unique_products_info[:30]:
-#         data = {
-#             "name": product["name"],
-#             "category": category_ids[product["category"]],
-#             "producer": product["producer"],
-#             "slug": "".join(
-#                 [letter for letter in product["name"] if letter.isalpha() or letter.isdigit() or letter == ' '])
-#                     .replace(' ', '-').replace('--', '-')[:50],
-#             "description": product["description"],
-#             "price": product["price"].strip('$')
-#         }
-#         image_name = f"{data['slug']}.{product['image'].split('.')[-1]}"
-#         image_response = requests.get(url=product["image"])
-#         if image_response.status_code == 200:
-#             data['image'] = ContentFile(image_response.content, name=image_name)
-#         else:
-#             errors.append(f"Failed to download image for product {product['name']}")
-#         print(data)
-#         serializer = create_serializer(data=data)
-#         if serializer.is_valid():
-#             created_objects.append(serializer.save())
-#         else:
-#             errors.append(serializer.errors)
-#     response_data = {
-#         'created_objects': list_serializer(created_objects, many=True).data,
-#         'errors': errors,
-#     }
-#     return response_data
-#
-#
-# def create_categories(Category, create_serializer, list_serializer):
-#     unique_products_info = get_unique_products_info()
-#     categories = list(set([product['category'] for product in unique_products_info]))
-#     created_objects = []
-#     errors = []
-#     for category in categories:
-#         if Category.objects.filter(name=category).count() == 0:
-#             data = {
-#                 "name": category,
-#                 "slug": category.replace('&', 'and').replace(' ', '-'),
-#             }
-#             serializer = create_serializer(data=data)
-#             if serializer.is_valid():
-#                 created_objects.append(serializer.save())
-#             else:
-#                 errors.append(serializer.errors)
-#     created_categories = list_serializer(created_objects, many=True).data
-#     category_ids = {category["name"]: category["id"] for category in created_categories}
-#     return category_ids
 
 
 def parse_products_info():
