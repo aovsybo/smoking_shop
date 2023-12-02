@@ -6,7 +6,6 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
-
 from django_filters.rest_framework import DjangoFilterBackend
 
 from products.api.serializers import (
@@ -18,7 +17,7 @@ from products.api.serializers import (
 from products.models import Product, Category
 from products.service import ProductFilter
 from products.permissions import IsAdminOrSafeMethods
-from products.parse_data import create_categories, create_products, parse_products_info
+from products.parse_data import parse_products_info
 from config.services import CustomPagination
 
 
@@ -100,7 +99,37 @@ class SearchListView(ListAPIView):
 
 class ParseCatalog(APIView):
     def post(self, request, *args, **kwargs):
-        parse_products_info()
-        category_ids = create_categories(CategoryInfoSerializer, CategorySerializer)
-        response_data = create_categories(ProductCreateSerializer, ProductSerializer, category_ids)
+        products = parse_products_info()
+        categories = self.get_categories_from_products(products)
+        response_data = self.create_categories(categories)
         return Response(response_data, status=status.HTTP_201_CREATED)
+
+    def create_categories(self, categories):
+        created_objects = []
+        errors = []
+        for category in categories:
+            if Category.objects.filter(name=category).count() == 0:
+                data = {
+                    "name": category,
+                    "slug": self.get_slug_from_str(category),
+                }
+                serializer = CategoryInfoSerializer(data=data)
+                if serializer.is_valid():
+                    created_objects.append(serializer.save())
+                else:
+                    errors.append(serializer.errors)
+        response_data = {
+            'created_objects': CategorySerializer(created_objects, many=True).data,
+            'errors': errors,
+        }
+        return response_data
+
+    @staticmethod
+    def get_categories_from_products(products):
+        return list(set([product['category'] for product in products]))
+
+    @staticmethod
+    def get_slug_from_str(name: str):
+        return "".join(
+            [letter for letter in name if letter.isalpha() or letter.isdigit() or letter == ' ']
+        ).replace(' ', '-').replace('--', '-')[:50]
