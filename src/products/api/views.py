@@ -1,4 +1,7 @@
+import requests
 from django.http import Http404
+from django.core.files.base import ContentFile
+from django.core.files import File
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -143,17 +146,18 @@ class ParseCatalog(APIView):
                     "description": product["description"],
                     "price": product["price"].strip('$')
                 }
-                #         image_name = f"{data['slug']}.{product['image'].split('.')[-1]}"
-                #         image_response = requests.get(url=product["image"])
-                #         if image_response.status_code == 200:
-                #             data['image'] = ContentFile(image_response.content, name=image_name)
-                #         else:
-                #             errors.append(f"Failed to download image for product {product['name']}")
-                serializer = ProductCreateSerializer(data=data)
-                if serializer.is_valid():
-                    created_objects.append(serializer.save())
+                image_response = requests.get(url=product["image"])
+                if image_response.status_code == 200:
+                    image_content = ContentFile(image_response.content)
+                    image_name = f"{data['slug']}.{product['image'].split('.')[-1]}"
+                    data["image"] = File(image_content, name=image_name)
+                    serializer = ProductCreateSerializer(data=data)
+                    if serializer.is_valid():
+                        created_objects.append(serializer.save())
+                    else:
+                        errors.append(serializer.errors)
                 else:
-                    errors.append(serializer.errors)
+                    errors.append({"image": f"Failed to download image from {product['image']}"})
         response_data = {
             'created_objects': ProductSerializer(created_objects, many=True).data,
             'errors': errors,
